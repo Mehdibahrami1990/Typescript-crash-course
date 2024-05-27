@@ -1,24 +1,60 @@
-import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
+import { v4 as uuidv4 } from 'uuid';
+import './index.css';
+type ItemProps = {
+  id: string;
+  name: string;
+  email: string;
+};
+const form = document.querySelector<HTMLFormElement>('#add-user-form');
+const name = document.querySelector<HTMLInputElement>('#name');
+const email = document.querySelector<HTMLInputElement>('#email');
+const users = document.querySelector<HTMLDivElement>('#user-list');
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+const userList: ItemProps[] = loadUsers();
+userList.forEach(addUser);
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+//optional chaining
+form?.addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  if (name?.value === undefined || email?.value === undefined) return;
+
+  const userItem: ItemProps = {
+    id: uuidv4(),
+    name: name.value,
+    email: email.value,
+  };
+  userList.push(userItem);
+  // console.log(userItem);
+  addUser(userItem);
+  saveUsers();
+  name.value = '';
+  email.value = '';
+});
+function addUser(item: ItemProps) {
+  const container = document.createElement('div');
+  const nameElement = document.createElement('p');
+  const emailElement = document.createElement('p');
+
+  nameElement.append(item.name);
+  emailElement.append(item.email);
+  container.append(nameElement, emailElement);
+  users?.append(container);
+
+  container.classList.add(
+    'p-6',
+    'bg-slate-800',
+    'rounded-md',
+    'text-center',
+    'text-slate-200'
+  );
+}
+function saveUsers() {
+  localStorage.setItem('items', JSON.stringify(userList));
+}
+function loadUsers(): ItemProps[] {
+  const data = localStorage.getItem('items');
+
+  if (data == null) return [];
+  return JSON.parse(data);
+}
